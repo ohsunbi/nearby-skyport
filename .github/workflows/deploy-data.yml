@@ -2,7 +2,7 @@ name: Dump & Deploy data every 5 min
 
 on:
   schedule:
-    - cron: "*/3 * * * *"  # 3분마다 실행 (UTC 기준)
+    - cron: "*/5 * * * *"  # 5분마다 실행 (UTC 기준)
   workflow_dispatch:        # 수동 실행 + 강제배포 스위치
     inputs:
       force_deploy:
