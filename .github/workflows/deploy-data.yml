@@ -11,6 +11,10 @@ permissions:
 jobs:
   dump-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      # ✅ 여기에서 전체 스텝에 SA 인증 적용
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/nearby-sa.json
+      FIREBASE_PROJECT_ID: nearby-data
 
     steps:
       - name: Checkout
@@ -21,8 +25,10 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install deps
-        run: npm ci || npm i
+      - name: Install deps & Firebase CLI
+        run: |
+          npm ci || npm i
+          npm i -g firebase-tools jq
 
       - name: Write service accounts
         run: |
@@ -31,17 +37,12 @@ jobs:
 
       - name: Debug SA project and hosting sites
         run: |
-          echo "Service Account project_id:"
-          jq -r '.project_id' nearby-sa.json
+          echo "Service Account project_id:"; jq -r '.project_id' nearby-sa.json
           echo ""
           echo "Hosting sites in this project:"
-          npx firebase-tools hosting:sites:list --project "$(jq -r '.project_id' nearby-sa.json)" || true
+          firebase hosting:sites:list --project "$FIREBASE_PROJECT_ID"
 
-      - name: Run dump script (read from cpk-equip-track)
-        env:
-          # dump_equipment.js는 로컬 파일 serviceAccountKey.json을 자동 사용
-          PROJECT_ID: cpk-equip-track
-          OUTPUT_DIR: public/data
+      - name: Run dump script
         run: |
           mkdir -p public/data
           npm run dump
@@ -53,13 +54,7 @@ jobs:
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Changed files:"
-            git status --porcelain public/data
           fi
-
-      - name: Install Firebase CLI
-        if: steps.diff.outputs.changed == 'true'
-        run: npm i -g firebase-tools jq
 
       - name: Safety check (ensure correct site)
         if: steps.diff.outputs.changed == 'true'
@@ -67,9 +62,7 @@ jobs:
           jq -e '.hosting.site == "nearby-data"' firebase.json >/dev/null
           echo "firebase.json points to hosting site 'nearby-data' ✅"
 
-      - name: Deploy to Firebase Hosting (nearby-data)
+      - name: Deploy to Firebase Hosting
         if: steps.diff.outputs.changed == 'true'
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/nearby-sa.json
         run: |
-          firebase deploy --only hosting --project nearby-data --non-interactive
+          firebase deploy --only hosting --project "$FIREBASE_PROJECT_ID" --non-interactive
