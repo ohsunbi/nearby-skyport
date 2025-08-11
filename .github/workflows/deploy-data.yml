@@ -12,9 +12,8 @@ jobs:
   dump-and-deploy:
     runs-on: ubuntu-latest
     env:
-      # ✅ 여기에서 전체 스텝에 SA 인증 적용
       GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/nearby-sa.json
-      FIREBASE_PROJECT_ID: nearby-data
+      FIREBASE_PROJECT_ID: nearby-data   # ← 별도 프로젝트면 nearby-data가 맞음
 
     steps:
       - name: Checkout
@@ -28,7 +27,7 @@ jobs:
       - name: Install deps & Firebase CLI
         run: |
           npm ci || npm i
-          npm i -g firebase-tools jq
+          npm i -g firebase-tools   # ⬅️ jq 설치 제거
 
       - name: Write service accounts
         run: |
@@ -37,7 +36,8 @@ jobs:
 
       - name: Debug SA project and hosting sites
         run: |
-          echo "Service Account project_id:"; jq -r '.project_id' nearby-sa.json
+          echo "Service Account project_id:"
+          node -e "console.log(JSON.parse(require('fs').readFileSync('nearby-sa.json','utf8')).project_id)"
           echo ""
           echo "Hosting sites in this project:"
           firebase hosting:sites:list --project "$FIREBASE_PROJECT_ID"
@@ -56,11 +56,11 @@ jobs:
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
 
+      # (선택) Safety check 대체: Node로 firebase.json 검사
       - name: Safety check (ensure correct site)
         if: steps.diff.outputs.changed == 'true'
         run: |
-          jq -e '.hosting.site == "nearby-data"' firebase.json >/dev/null
-          echo "firebase.json points to hosting site 'nearby-data' ✅"
+          node -e "const f=require('fs'); const v=JSON.parse(f.readFileSync('firebase.json','utf8')); if(!(v.hosting && v.hosting.site==='nearby-data')){process.exit(1)}; console.log('firebase.json points to hosting site \\'nearby-data\\' ✅')"
 
       - name: Deploy to Firebase Hosting
         if: steps.diff.outputs.changed == 'true'
