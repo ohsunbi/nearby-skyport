@@ -29,6 +29,14 @@ jobs:
           echo '${{ secrets.CPK_SERVICE_ACCOUNT_JSON }}' > serviceAccountKey.json
           echo '${{ secrets.NEARBY_SERVICE_ACCOUNT_JSON }}' > nearby-sa.json
 
+      - name: Debug SA project and hosting sites
+        run: |
+          echo "Service Account project_id:"
+          jq -r '.project_id' nearby-sa.json
+          echo ""
+          echo "Hosting sites in this project:"
+          npx firebase-tools hosting:sites:list --project "$(jq -r '.project_id' nearby-sa.json)" || true
+
       - name: Run dump script (read from cpk-equip-track)
         env:
           # dump_equipment.js는 로컬 파일 serviceAccountKey.json을 자동 사용
