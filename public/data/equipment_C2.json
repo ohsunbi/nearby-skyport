@@ -147,8 +147,6 @@
     "id": "110013",
     "displayName": "카니발 013",
     "status": 1,
-    "latitude": 37.4556759,
-    "longitude": 126.445826,
     "e_org": "C",
     "e_dept": "2",
     "e_orgdept": "C2",
@@ -156,7 +154,18 @@
     "type": 3,
     "subType": 1,
     "category": "카니발",
-    "tailNum": "013"
+    "tailNum": "013",
+    "affiliation": "CPK",
+    "latitude": 37.4871429,
+    "memo": "",
+    "employeeId": "2408006",
+    "dept": "램프2팀",
+    "userName": "오제창",
+    "longitude": 126.4993845,
+    "timestamp": {
+      "_seconds": 1754925687,
+      "_nanoseconds": 623000000
+    }
   },
   {
     "id": "200620",
@@ -210,8 +219,6 @@
     "id": "201211",
     "displayName": "토바 1211",
     "status": 1,
-    "latitude": 37.455188,
-    "longitude": 126.4450217,
     "e_org": "C",
     "e_dept": "2",
     "e_orgdept": "C2",
@@ -219,7 +226,18 @@
     "type": 2,
     "subType": 1,
     "category": "토바",
-    "tailNum": "1211"
+    "tailNum": "1211",
+    "affiliation": "CPK",
+    "latitude": 37.4874476,
+    "memo": "",
+    "employeeId": "2408006",
+    "dept": "램프2팀",
+    "userName": "오제창",
+    "longitude": 126.5003222,
+    "timestamp": {
+      "_seconds": 1754926026,
+      "_nanoseconds": 768000000
+    }
   },
   {
     "id": "201212",
@@ -317,9 +335,6 @@
   {
     "id": "230219",
     "displayName": "토잉카 219",
-    "status": 1,
-    "latitude": 37.4556497,
-    "longitude": 126.4448908,
     "e_org": "C",
     "e_dept": "2",
     "e_orgdept": "C2",
@@ -327,7 +342,19 @@
     "type": 1,
     "subType": 3,
     "category": "토잉카",
-    "tailNum": "219"
+    "tailNum": "219",
+    "affiliation": "CPK",
+    "latitude": 37.4874935,
+    "memo": "",
+    "employeeId": "2408006",
+    "dept": "램프2팀",
+    "userName": "오제창",
+    "longitude": 126.4996862,
+    "status": 2,
+    "timestamp": {
+      "_seconds": 1754925435,
+      "_nanoseconds": 995000000
+    }
   },
   {
     "id": "230223",
