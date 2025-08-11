@@ -11,7 +11,8 @@ on:
         default: "false"
 
 permissions:
-  contents: read
+  contents: write   # ← read에서 write로
+
 
 jobs:
   dump-and-deploy:
@@ -60,6 +61,22 @@ jobs:
           mkdir -p "$OUTPUT_DIR"
           npm run dump
 
+
+      - name: Commit & push changes if any
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data
+          if git commit -m "data: update $(date -u +'%Y-%m-%dT%H:%M:%SZ')" ; then
+            git push
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes to commit"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+        id: commit
+
+
       - name: Verify dumped files
         run: |
           echo "---- public tree (max depth 2) ----"
@@ -81,6 +98,7 @@ jobs:
           node -e "const f=require('fs'); const v=JSON.parse(f.readFileSync('firebase.json','utf8')); if(!(v.hosting && v.hosting.site==='nearby-data')){console.error('firebase.json hosting.site != nearby-data'); process.exit(1)}; console.log('firebase.json points to hosting site \"nearby-data\" ✅');"
 
       - name: Deploy to Firebase Hosting
-        if: steps.diff.outputs.changed == 'true' || github.event.inputs.force_deploy == 'true'
+        if: steps.commit.outputs.changed == 'true' || github.event.inputs.force_deploy == 'true'
         run: |
           firebase deploy --only hosting --project "$FIREBASE_PROJECT_ID" --non-interactive
+
