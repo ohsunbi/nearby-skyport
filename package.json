@@ -1,0 +1,10 @@
+{
+  "name": "nearby-skyport",
+  "private": true,
+  "scripts": {
+    "dump": "node dump_equipment.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}

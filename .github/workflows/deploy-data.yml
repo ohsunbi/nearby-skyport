@@ -1,0 +1,67 @@
+name: Dump & Deploy data every 5 min
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dump-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        run: npm ci || npm i
+
+      - name: Write service accounts
+        run: |
+          echo '${{ secrets.CPK_SERVICE_ACCOUNT_JSON }}' > serviceAccountKey.json
+          echo '${{ secrets.NEARBY_SERVICE_ACCOUNT_JSON }}' > nearby-sa.json
+
+      - name: Run dump script (read from cpk-equip-track)
+        env:
+          # dump_equipment.js는 로컬 파일 serviceAccountKey.json을 자동 사용
+          PROJECT_ID: cpk-equip-track
+          OUTPUT_DIR: public/data
+        run: |
+          mkdir -p public/data
+          npm run dump
+
+      - name: Detect changes in public/data
+        id: diff
+        run: |
+          if git diff --quiet -- public/data; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changed files:"
+            git status --porcelain public/data
+          fi
+
+      - name: Install Firebase CLI
+        if: steps.diff.outputs.changed == 'true'
+        run: npm i -g firebase-tools jq
+
+      - name: Safety check (ensure correct site)
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          jq -e '.hosting.site == "nearby-data"' firebase.json >/dev/null
+          echo "firebase.json points to hosting site 'nearby-data' ✅"
+
+      - name: Deploy to Firebase Hosting (nearby-data)
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/nearby-sa.json
+        run: |
+          firebase deploy --only hosting --project nearby-data --non-interactive
